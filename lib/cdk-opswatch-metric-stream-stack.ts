@@ -131,7 +131,7 @@ export class CdkOpswatchMetricStreamStack extends Stack {
     // });
     const stream = new cloudwatch.CfnMetricStream(this, 'CloudwatchMetricStream', {
       name: 'OpswatchMetricStream',
-      outputFormat: 'JSON',
+      outputFormat: 'json',
       roleArn: cloudwatch_role.attrArn,
       firehoseArn: kinesis_metric_stream.attrArn
     });
