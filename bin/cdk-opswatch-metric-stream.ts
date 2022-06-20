@@ -4,7 +4,7 @@ import * as cdk from 'aws-cdk-lib';
 import { CdkOpswatchMetricStreamStack } from '../lib/cdk-opswatch-metric-stream-stack';
 
 const app = new cdk.App();
-new CdkOpswatchMetricStreamStack(app, 'CdkOpswatchMetricStreamStack', {
+new CdkOpswatchMetricStreamStack(app, 'OpswatchMetricStream', {
   /* If you don't specify 'env', this stack will be environment-agnostic.
    * Account/Region-dependent features and context lookups will not work,
    * but a single synthesized template can be deployed anywhere. */
