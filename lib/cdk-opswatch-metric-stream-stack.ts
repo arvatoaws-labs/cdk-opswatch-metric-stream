@@ -8,7 +8,10 @@ import * as kinesis from 'aws-cdk-lib/aws-kinesisfirehose';
 export class CdkOpswatchMetricStreamStack extends Stack {
   constructor(scope: Construct, id: string, props?: StackProps) {
     super(scope, id, props);
-    
+
+    const param_file = this.node.tryGetContext('ParamFile');
+    const param_file_content = require(param_file);
+
     const error_bucket = new s3.CfnBucket(this, 'ErrorBucket', {
       publicAccessBlockConfiguration: {
         blockPublicAcls: true,
@@ -71,9 +74,6 @@ export class CdkOpswatchMetricStreamStack extends Stack {
         }
       }]
     });
-    const param_url = new CfnParameter(this, 'OpsWatchUrl', {
-      type: 'String'
-    });
     const kinesis_metric_stream = new kinesis.CfnDeliveryStream(this, 'KinesisMetricStream', {
       deliveryStreamName: 'OpswatchMetricStream',
       deliveryStreamType: 'DirectPut',
@@ -85,7 +85,7 @@ export class CdkOpswatchMetricStreamStack extends Stack {
         roleArn: kinesis_role.attrArn,
         endpointConfiguration: {
           name: 'CentralMetricProcessor',
-          url: param_url.valueAsString
+          url: param_file_content.url
         },
         retryOptions: {
           durationInSeconds: 100
@@ -125,22 +125,13 @@ export class CdkOpswatchMetricStreamStack extends Stack {
         }
       }]
     });
-    // const param_filters = new CfnParameter(this, 'IncludeFilters', {
-    //   type: 'CommaDelimitedList',
-    //   default: '*'
-    // });
     const stream = new cloudwatch.CfnMetricStream(this, 'CloudwatchMetricStream', {
       name: 'OpswatchMetricStream',
       outputFormat: 'json',
       roleArn: cloudwatch_role.attrArn,
-      firehoseArn: kinesis_metric_stream.attrArn
+      firehoseArn: kinesis_metric_stream.attrArn,
+      includeFilters: param_file_content.includeFilters,
+      excludeFilters: param_file_content.excludeFilters
     });
-    // if (Fn.select(0, param_filters.valueAsList) !== '*') {
-    //   stream.includeFilters = param_filters.valueAsList.map(filter => {
-    //     return {
-    //       namespace: filter
-    //     };
-    //   });
-    // }
   }
 }
