@@ -78,6 +78,9 @@ export class CdkOpswatchMetricStreamStack extends Stack {
       deliveryStreamName: 'OpswatchMetricStream',
       deliveryStreamType: 'DirectPut',
       httpEndpointDestinationConfiguration: {
+        requestEncoding: {
+          contentEncoding: 'GZIP'
+        },
         bufferingHints: {
           intervalInSeconds: 60,
           sizeInMBs: 1
