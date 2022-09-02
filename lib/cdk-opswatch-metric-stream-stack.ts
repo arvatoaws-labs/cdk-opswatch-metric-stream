@@ -4,6 +4,8 @@ import * as cloudwatch from 'aws-cdk-lib/aws-cloudwatch';
 import * as iam from 'aws-cdk-lib/aws-iam';
 import * as s3 from 'aws-cdk-lib/aws-s3';
 import * as kinesis from 'aws-cdk-lib/aws-kinesisfirehose';
+import * as events from 'aws-cdk-lib/aws-events'
+import * as sns from 'aws-cdk-lib/aws-sns'
 
 export class CdkOpswatchMetricStreamStack extends Stack {
   constructor(scope: Construct, id: string, props?: StackProps) {
@@ -88,7 +90,7 @@ export class CdkOpswatchMetricStreamStack extends Stack {
         roleArn: kinesis_role.attrArn,
         endpointConfiguration: {
           name: 'CentralMetricProcessor',
-          url: param_file_content.url
+          url: param_file_content.url + '/metrics'
         },
         retryOptions: {
           durationInSeconds: 100
@@ -135,6 +137,28 @@ export class CdkOpswatchMetricStreamStack extends Stack {
       firehoseArn: kinesis_metric_stream.attrArn,
       includeFilters: param_file_content.includeFilters,
       excludeFilters: param_file_content.excludeFilters
+    });
+
+    const bus = new events.EventBus(this, 'OpswatchBus', {
+      eventBusName: 'opswatch'
+    });
+    const topic = new sns.Topic(this, 'TrustedAdvisorTopic', {
+      topicName: 'trusted_advisor'
+    });
+    const topic_policy = new sns.TopicPolicy(this, 'TrustedAdvisorTopicPolicy', {
+      topics: [topic],
+      policyDocument: new iam.PolicyDocument({
+        statements: [new iam.PolicyStatement({
+          actions: ['SNS:Publish'],
+          principals: [new iam.ServicePrincipal('events.amazonaws.com')],
+          resources: ['*']
+        })]
+      })
+    });
+    const subscription = new sns.Subscription(this, 'TrsutedAdvisorSubscription', {
+      topic,
+      endpoint: param_file_content.url + '/trusted_advisor',
+      protocol: sns.SubscriptionProtocol.HTTPS
     });
   }
 }
