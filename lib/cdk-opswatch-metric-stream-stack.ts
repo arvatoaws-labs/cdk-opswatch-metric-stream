@@ -138,15 +138,18 @@ export class CdkOpswatchMetricStreamStack extends Stack {
       includeFilters: param_file_content.includeFilters,
       excludeFilters: param_file_content.excludeFilters
     });
-
-    const bus = new events.EventBus(this, 'OpswatchBus', {
-      eventBusName: 'opswatch'
-    });
-    const topic = new sns.Topic(this, 'TrustedAdvisorTopic', {
+    const topic = new sns.CfnTopic(this, 'TrustedAdvisorTopic', {
       topicName: 'trusted_advisor'
     });
-    const topic_policy = new sns.TopicPolicy(this, 'TrustedAdvisorTopicPolicy', {
-      topics: [topic],
+    const topic_policy = new sns.CfnTopicPolicy(this, 'TrustedAdvisorTopicPolicy', {
+      topics: [Fn.join('', [
+        'arn:aws:sns:',
+        Stack.of(this).region,
+        ':',
+        Stack.of(this).account,
+        ':',
+        topic.attrTopicName
+      ])],
       policyDocument: new iam.PolicyDocument({
         statements: [new iam.PolicyStatement({
           actions: ['SNS:Publish'],
@@ -155,8 +158,15 @@ export class CdkOpswatchMetricStreamStack extends Stack {
         })]
       })
     });
-    const subscription = new sns.Subscription(this, 'TrsutedAdvisorSubscription', {
-      topic,
+    const subscription = new sns.CfnSubscription(this, 'TrsutedAdvisorSubscription', {
+      topicArn: Fn.join('', [
+        'arn:aws:sns:',
+        Stack.of(this).region,
+        ':',
+        Stack.of(this).account,
+        ':',
+        topic.attrTopicName
+      ]),
       endpoint: param_file_content.url + '/trusted_advisor',
       protocol: sns.SubscriptionProtocol.HTTPS
     });
