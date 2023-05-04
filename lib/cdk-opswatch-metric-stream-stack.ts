@@ -136,7 +136,11 @@ export class CdkOpswatchMetricStreamStack extends Stack {
       roleArn: cloudwatch_role.attrArn,
       firehoseArn: kinesis_metric_stream.attrArn,
       includeFilters: param_file_content.includeFilters,
-      excludeFilters: param_file_content.excludeFilters
+      excludeFilters: (param_file_content.excludeFilters && param_file_content.excludeFilters.length > 0) ? param_file_content.excludeFilters : [{
+        namespace: 'Usage'
+      }, {
+        namespace: 'TrustedAdvisor'
+      }]
     });
     const topic = new sns.CfnTopic(this, 'TrustedAdvisorTopic', {
       topicName: 'trusted_advisor'
