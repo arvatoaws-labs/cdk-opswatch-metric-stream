@@ -142,37 +142,5 @@ export class CdkOpswatchMetricStreamStack extends Stack {
         namespace: 'TrustedAdvisor'
       }]
     });
-    const topic = new sns.CfnTopic(this, 'TrustedAdvisorTopic', {
-      topicName: 'trusted_advisor'
-    });
-    const topic_policy = new sns.CfnTopicPolicy(this, 'TrustedAdvisorTopicPolicy', {
-      topics: [Fn.join('', [
-        'arn:aws:sns:',
-        Stack.of(this).region,
-        ':',
-        Stack.of(this).account,
-        ':',
-        topic.attrTopicName
-      ])],
-      policyDocument: new iam.PolicyDocument({
-        statements: [new iam.PolicyStatement({
-          actions: ['SNS:Publish'],
-          principals: [new iam.ServicePrincipal('events.amazonaws.com')],
-          resources: ['*']
-        })]
-      })
-    });
-    const subscription = new sns.CfnSubscription(this, 'TrsutedAdvisorSubscription', {
-      topicArn: Fn.join('', [
-        'arn:aws:sns:',
-        Stack.of(this).region,
-        ':',
-        Stack.of(this).account,
-        ':',
-        topic.attrTopicName
-      ]),
-      endpoint: param_file_content.url + '/trusted_advisor',
-      protocol: sns.SubscriptionProtocol.HTTPS
-    });
   }
 }
