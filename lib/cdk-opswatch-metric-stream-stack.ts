@@ -38,7 +38,11 @@ export class CdkOpswatchMetricStreamStack extends Stack {
           },
           status: 'Enabled'
         }]
-      }
+      },
+      tags: [{
+        key: 'asy_backup_plan',
+        value: 'none'
+      }]
     });
     const kinesis_role = new iam.CfnRole(this, 'KinesisRole', {
       assumeRolePolicyDocument: {
